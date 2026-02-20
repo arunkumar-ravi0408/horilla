@@ -8,7 +8,7 @@ pipeline {
 
     stages {
         stage('Checkout') {
-            agent { label 'master || builtin' } // Run checkout on master
+            agent { label 'built-in' } // Run checkout on controller
             steps {
                 checkout scm
             }
