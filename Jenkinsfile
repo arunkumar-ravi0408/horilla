@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent none // We specify agents per stage
 
     environment {
         DOCKER_IMAGE = "your-dockerhub-username/horilla-app"
@@ -8,26 +8,27 @@ pipeline {
 
     stages {
         stage('Checkout') {
+            agent { label 'master || builtin' } // Run checkout on master
             steps {
-                // This stage pulls the code from your repository
                 checkout scm
             }
         }
 
         stage('Security Scan (Trivy)') {
+            agent { label 'docker-node' } // Run on Node 3
             steps {
                 script {
-                    echo "Running Security Scan on Node 3..."
-                    // We will trigger this on Node 3 in the next step
+                    echo "Running Security Scan on Node 3 (Worker Node)..."
                     sh 'trivy fs . --severity HIGH,CRITICAL'
                 }
             }
         }
 
         stage('Build Docker Image') {
+            agent { label 'docker-node' } // Run on Node 3
             steps {
                 script {
-                    echo "Building Docker Image..."
+                    echo "Building Docker Image on Node 3..."
                     sh "docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} ."
                     sh "docker build -t ${DOCKER_IMAGE}:latest ."
                 }
@@ -35,9 +36,10 @@ pipeline {
         }
 
         stage('Push to Docker Hub') {
+            agent { label 'docker-node' } // Run on Node 3
             steps {
                 script {
-                    echo "Logging into Docker Hub and Pushing Image..."
+                    echo "Logging into Docker Hub and Pushing Image from Node 3..."
                     sh "echo ${DOCKER_HUB_CREDS_PSW} | docker login -u ${DOCKER_HUB_CREDS_USR} --password-stdin"
                     sh "docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}"
                     sh "docker push ${DOCKER_IMAGE}:latest"
@@ -51,10 +53,11 @@ pipeline {
             echo "Pipeline finished."
         }
         success {
-            echo "Build and Deployment successful!"
+            echo "Build and Image Push successful!"
         }
         failure {
-            echo "Pipeline failed. Check logs."
+            echo "Pipeline failed. Check stage logs."
         }
     }
 }
+
