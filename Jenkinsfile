@@ -2,7 +2,7 @@ pipeline {
     agent none // We specify agents per stage
 
     environment {
-        DOCKER_IMAGE = "your-dockerhub-username/horilla-app"
+        DOCKER_IMAGE = "arunkumarravi08/horilla-app"
         DOCKER_HUB_CREDS = credentials('docker-hub-creds')
     }
 
