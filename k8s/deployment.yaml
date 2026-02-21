@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: horilla-app
+  namespace: dev
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  selector:
+    matchLabels:
+      app: horilla
+  template:
+    metadata:
+      labels:
+        app: horilla
+    spec:
+      containers:
+      - name: horilla
+        image: arunkumarr/horilla:latest
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: horilla-secrets
+              key: database-url
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: horilla-service
+  namespace: dev
+spec:
+  type: LoadBalancer
+  selector:
+    app: horilla
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000
