@@ -57,3 +57,12 @@ pipeline {
         }
     }
 }
+
+
+        stage('Trigger Deployment (Ansible)') {
+            steps {
+                sshagent(['docker-agent-cred']) {
+                    sh "ssh -o StrictHostKeyChecking=no ubuntu@10.10.1.82 'ansible-playbook -i inventory.ini deploy_horilla.yml --extra-vars \"db_url=postgres://postgres:postgres@db:5432/horilla\"'"
+                }
+            }
+        }
