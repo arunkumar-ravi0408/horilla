@@ -3,7 +3,7 @@ pipeline {
     
     environment {
         DOCKERHUB_CREDENTIALS_ID = 'docker-hub-cred'
-        DOCKERHUB_REPO = 'arunkumarr/horilla' // Set to suggested user repo or placeholder
+        DOCKERHUB_REPO = 'arunkumarravi08/horilla' // Updated to match your Docker Hub username
         SONARQUBE_SERVER = 'SonarQube'
     }
     
