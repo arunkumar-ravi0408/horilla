@@ -21,8 +21,7 @@ pipeline {
                     withSonarQubeEnv("${SONARQUBE_SERVER}") {
                         sh "${scannerHome}/bin/sonar-scanner \
                         -Dsonar.projectKey=horilla \
-                        -Dsonar.sources=. \
-                        -Dsonar.host.url=http://Node-1-Private-IP:9000"
+                        -Dsonar.sources=."
                     }
                 }
             }
