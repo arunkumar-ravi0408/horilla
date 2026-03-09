@@ -46,6 +46,19 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy to EKS') {
+            agent { label 'docker-node' } 
+            steps {
+                script {
+                    echo "Deploying to EKS..."
+                    // Note: Jenkins needs AWS credentials configured or an IAM role attached to the EC2 instance
+                    sh "aws eks update-kubeconfig --region us-east-1 --name ${env.CLUSTER_NAME}" 
+                    sh "kubectl apply -f k8s-manifests/deployment.yaml"
+                    sh "kubectl rollout status deployment/horilla-app"
+                }
+            }
+        }
     }
 
     post {
