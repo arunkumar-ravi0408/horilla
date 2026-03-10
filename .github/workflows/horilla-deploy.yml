@@ -10,7 +10,7 @@ env:
   AWS_REGION: us-east-1
   DOCKERHUB_REPOSITORY_FRONTEND: horilla-frontend
   DOCKERHUB_REPOSITORY_BACKEND: horilla-backend
-  EKS_CLUSTER_NAME: aslkjhgfdsa
+  EKS_CLUSTER_NAME: sap-dev-eks-cluster
 
 jobs:
   build-and-deploy:
