@@ -8,8 +8,8 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY_FRONTEND: horilla-frontend
-  ECR_REPOSITORY_BACKEND: horilla-backend
+  DOCKERHUB_REPOSITORY_FRONTEND: horilla-frontend
+  DOCKERHUB_REPOSITORY_BACKEND: horilla-backend
   EKS_CLUSTER_NAME: aslkjhgfdsa
 
 jobs:
@@ -26,36 +26,38 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v2
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build, tag, and push Backend image to Amazon ECR
+    - name: Build, tag, and push Backend image to Docker Hub
       env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_BACKEND:$IMAGE_TAG -f Dockerfile-backend .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY_BACKEND:$IMAGE_TAG
+        docker build -t $DOCKERHUB_USERNAME/$DOCKERHUB_REPOSITORY_BACKEND:$IMAGE_TAG -f Dockerfile-backend .
+        docker push $DOCKERHUB_USERNAME/$DOCKERHUB_REPOSITORY_BACKEND:$IMAGE_TAG
 
-    - name: Build, tag, and push Frontend image to Amazon ECR
+    - name: Build, tag, and push Frontend image to Docker Hub
       env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:$IMAGE_TAG -f Dockerfile-frontend .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:$IMAGE_TAG
+        docker build -t $DOCKERHUB_USERNAME/$DOCKERHUB_REPOSITORY_FRONTEND:$IMAGE_TAG -f Dockerfile-frontend .
+        docker push $DOCKERHUB_USERNAME/$DOCKERHUB_REPOSITORY_FRONTEND:$IMAGE_TAG
 
     - name: Update kubeconfig
       run: aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
 
     - name: Deploy to EKS
       env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         IMAGE_TAG: ${{ github.sha }}
       run: |
-        sed -i "s|image: .*backend:.*|image: $ECR_REGISTRY/$ECR_REPOSITORY_BACKEND:$IMAGE_TAG|g" k8s/deployment.yaml
-        sed -i "s|image: .*frontend:.*|image: $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:$IMAGE_TAG|g" k8s/deployment.yaml
+        sed -i "s|image: .*backend:.*|image: $DOCKERHUB_USERNAME/$DOCKERHUB_REPOSITORY_BACKEND:$IMAGE_TAG|g" k8s/deployment.yaml
+        sed -i "s|image: .*frontend:.*|image: $DOCKERHUB_USERNAME/$DOCKERHUB_REPOSITORY_FRONTEND:$IMAGE_TAG|g" k8s/deployment.yaml
         kubectl apply -f k8s/namespaces.yaml
         sleep 5
         kubectl apply -f k8s/
