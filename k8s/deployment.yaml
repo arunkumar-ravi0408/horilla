@@ -19,8 +19,8 @@ spec:
         app: horilla
     spec:
       containers:
-      - name: horilla
-        image: arunkumarr/horilla:latest
+      - name: horilla-backend
+        image: arunkumarr/horilla-backend:latest
         ports:
         - containerPort: 8000
         resources:
@@ -36,6 +36,17 @@ spec:
             secretKeyRef:
               name: horilla-secrets
               key: database-url
+      - name: horilla-frontend
+        image: arunkumarr/horilla-frontend:latest
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
 ---
 apiVersion: v1
 kind: Service
@@ -49,4 +60,4 @@ spec:
   ports:
   - protocol: TCP
     port: 80
-    targetPort: 8000
+    targetPort: 80
